@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EcgClassifierWeb</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/EcgClassifierWeb.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+       <nav class="custom-nav">
+    <div class="nav-container">
+        <a class="nav-brand" asp-area="" asp-page="/Index">
+            <span class="nav-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+            </span>
+            ECG Classifier
+        </a>
+        <div class="nav-links">
+            <a asp-area="" asp-page="/Index">Home</a>
+            <a asp-area="" asp-page="/Privacy">Privacy</a>
+        </div>
+    </div>
+</nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+  <footer class="site-footer">
+    &copy; 2026 - EcgClassifierWeb - <a asp-area="" asp-page="/Privacy">Privacy</a>
+</footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

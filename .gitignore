@@ -1,0 +1,13 @@
+# Python
+api/venv/
+api/__pycache__/
+*.pyc
+
+# .NET
+webApp/**/bin/
+webApp/**/obj/
+webApp/**/.vs/
+
+# OS
+.DS_Store
+Thumbs.db
