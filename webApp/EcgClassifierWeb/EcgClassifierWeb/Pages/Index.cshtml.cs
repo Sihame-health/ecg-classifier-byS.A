@@ -43,7 +43,7 @@ namespace EcgClassifierWeb.Pages
 
                 content.Add(streamContent, "file", UploadedFile.FileName);
 
-                var response = await client.PostAsync("http://127.0.0.1:8000/predict", content);
+                var response = await client.PostAsync("https://ecg-classifier-bysa-production.up.railway.app/predict", content);
 
                 if (response.IsSuccessStatusCode)
                 {
