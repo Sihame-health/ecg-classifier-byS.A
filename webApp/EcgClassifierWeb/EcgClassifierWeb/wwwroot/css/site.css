@@ -233,10 +233,15 @@ body {
     padding: 24px;
     text-align: center;
     box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .info-icon {
-    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 8px;
 }
 
