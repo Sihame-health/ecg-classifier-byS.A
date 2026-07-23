@@ -3,7 +3,7 @@
 A full-stack machine learning project that classifies ECG (electrocardiogram) images as **Normal** or **Abnormal** using a CNN model, served through a Python API and an ASP.NET Core web application.
 
 🔗 **Live demo:** https://ecg-classifierabnormal-normal-bysa.up.railway.app
-![Demo-ECG-CLASSIFIER](demo.gif)
+![ECG Classifier Demo](Demo-ECG-CLASSIFIER.gif)
 
 ---
 
