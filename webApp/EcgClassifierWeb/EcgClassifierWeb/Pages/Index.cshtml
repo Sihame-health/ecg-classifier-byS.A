@@ -1,142 +1,8 @@
-﻿@page
-@model IndexModel
-@{
-    ViewData["Title"] = "ECG Normal/Abnormal Classifier S.A";
-}
-
-<div class="hero">
-    <div class="hero-content">
-        <div class="badge">
-            <i class="bi bi-heart-pulse"></i> Digital Health Project by S.A
-        </div>
-        <h1>ECG Classifier</h1>
-        <p class="subtitle">Smart cardiac anomaly detection powered by Deep Learning</p>
-        <p class="usage-note">
-            You can use your own ECG photos — just make sure to upload a single-lead signal at a time, not a full multi-lead recording.
-        </p>
-    </div>
-</div>
-
-<div class="container-main">
-    <div class="upload-card">
-        <form method="post" enctype="multipart/form-data" id="uploadForm">
-            <div class="upload-zone" id="uploadZone">
-                <input type="file" class="file-input" id="UploadedFile" name="UploadedFile" accept="image/*" required />
-                <div class="upload-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                    </svg>
-                </div>
-                <p class="upload-text">Drag your ECG image here</p>
-                <p class="upload-subtext">"or click to browse your files"</p>
-                <p class="file-name" id="fileName"></p>
-            </div>
-            <button type="submit" class="btn-analyze">
-                 Run ECG analysis
-            </button>
-        </form>
-
-        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-        {
-            <div class="result-box error">
-                <p>@Model.ErrorMessage</p>
-            </div>
-        }
-
-        @if (!string.IsNullOrEmpty(Model.PredictionLabel))
-        {
-            bool isNormal = Model.PredictionLabel == "Normal";
-            bool isNotEcg = Model.PredictionLabel == "Not an ECG";
-            string resultClass = isNotEcg ? "error" : (isNormal ? "success" : "warning");
-
-            <div class="result-box @resultClass">
-                <div class="result-header">
-                    <div>
-                        <h3>@Model.PredictionLabel</h3>
-                        <p class="confidence">Confidence : @Model.Confidence%</p>
-                    </div>
-                </div>
-                <div class="confidence-bar">
-                    <div class="confidence-fill @resultClass" style="width: @(Model.Confidence)%"></div>
-                </div>
-                <p class="recommendation">@Model.Recommendation</p>
-            </div>
-        }
-    </div>
-
-    <div class="info-cards">
-        <div class="info-card">
-            <div class="info-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
-                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
-                </svg>
-            </div>
-            <h4>MobileNetV2</h4>
-            <p>CNN model trained via transfer learning</p>
-        </div>
-        <div class="info-card">
-            <div class="info-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
-            </div>
-            <h4>96.9% AUC</h4>
-            <p>CNN model trained using transfer learning</p>
-        </div>
-        <div class="info-card">
-            <div class="info-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-            </div>
-            <h4>110K+ images</h4>
-            <p>MIT-BIH dataset + real-world ECG images</p>
-        </div>
-    </div>
-</div>
-
-<footer class="author-footer">
-    <div class="author-card">
-        <div class="author-avatar">SA</div>
-        <div class="author-text">
-            <h4>A note from the Author</h4>
-            <p>
-                Hi there! I'm Siham Ait Taleb, a Master's student in Digital
-                Engineering for Healthcare Professions, based in Morocco, with
-                a background in electrical engineering. This project is my
-                personal deep dive into machine learning for healthcare — I
-                wanted to bridge my two passions by building this ECG
-                classifier from scratch, handling everything from the initial
-                dataset to final deployment.
-            </p>
-            <p>
-                Truth be told, hardware and electronics are where my heart
-                really is — but I wanted to challenge myself and step into
-                the ML/software side too, and I truly enjoyed the journey.
-                I'd love to keep exploring projects like this in the future,
-                at the intersection of engineering and healthcare.
-                Feel free to reach out — I'd love to connect and discuss!
-            </p>
-            <div class="author-links">
-                <a href="https://github.com/Sihame-health" target="_blank">GitHub</a>
-                <a href="https://linkedin.com/in/siham-ait-taleb" target="_blank">LinkedIn</a>
-            </div>
-        </div>
-    </div>
-    <p class="disclaimer">
-        This project is for educational purposes only and is not intended to replace professional medical advice.
-    </p>
-</footer>
-
-<script>
+﻿<script>
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('UploadedFile');
     const fileName = document.getElementById('fileName');
-
-    uploadZone.addEventListener('click', () => fileInput.click());
+    const uploadForm = document.getElementById('uploadForm');
 
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
@@ -163,7 +29,7 @@
             uploadZone.classList.add('has-file');
         }
     });
-        const uploadForm = document.getElementById('uploadForm');
+
     const loadingMessages = [
         "Analyzing ECG signal...",
         "Running the model...",
