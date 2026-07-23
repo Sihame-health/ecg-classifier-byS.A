@@ -6,10 +6,12 @@ namespace EcgClassifierWeb.Pages
     public class IndexModel : PageModel
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public IndexModel(IHttpClientFactory httpClientFactory)
+        public IndexModel(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         [BindProperty]
@@ -36,14 +38,19 @@ namespace EcgClassifierWeb.Pages
             {
                 var client = _httpClientFactory.CreateClient();
                 using var content = new MultipartFormDataContent();
-                using var stream = UploadedFile.OpenReadStream();
-                using var streamContent = new StreamContent(stream);
+
+                using var memoryStream = new MemoryStream();
+                await UploadedFile.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                var streamContent = new ByteArrayContent(memoryStream.ToArray());
                 streamContent.Headers.ContentType =
                     new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedFile.ContentType);
 
                 content.Add(streamContent, "file", UploadedFile.FileName);
 
-                var response = await client.PostAsync("https://ecg-classifier-bysa-production.up.railway.app/predict", content);
+                var apiUrl = _configuration["ApiSettings:PredictUrl"];
+                var response = await client.PostAsync(apiUrl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -53,9 +60,16 @@ namespace EcgClassifierWeb.Pages
                         new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                     );
 
-                    PredictionLabel = result?.Label;
-                    Confidence = result?.Confidence;
-                    Recommendation = result?.Recommendation;
+                    if (!string.IsNullOrEmpty(result?.Error))
+                    {
+                        ErrorMessage = result.Error;
+                    }
+                    else
+                    {
+                        PredictionLabel = result?.Label;
+                        Confidence = result?.Confidence;
+                        Recommendation = result?.Recommendation;
+                    }
                 }
                 else
                 {
@@ -74,6 +88,7 @@ namespace EcgClassifierWeb.Pages
             public double? Confidence { get; set; }
             public double? RawScore { get; set; }
             public string? Recommendation { get; set; }
+            public string? Error { get; set; }
         }
     }
 }

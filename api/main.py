@@ -51,35 +51,44 @@ def read_root():
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents)).convert("RGB")
+    try:
+        contents = await file.read()
 
-    # Vérifier si l'image ressemble à un ECG avant de prédire
-    if not is_likely_ecg(image):
+        if len(contents) == 0:
+            return {"error": "Empty file received. Please upload a valid image."}
+
+        try:
+            image = Image.open(io.BytesIO(contents)).convert("RGB")
+        except Exception:
+            return {"error": "Could not read this file as an image. Please upload a JPG or PNG."}
+
+        if not is_likely_ecg(image):
+            return {
+                "label": "Not an ECG",
+                "confidence": 0,
+                "raw_score": 0,
+                "recommendation": "This does not appear to be an ECG signal. Please upload a valid ECG image."
+            }
+
+        image_resized = image.resize((IMG_SIZE, IMG_SIZE))
+        img_array = np.array(image_resized) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        prediction = model.predict(img_array)[0][0]
+
+        is_normal = prediction > THRESHOLD
+        label = "Normal" if is_normal else "Abnormal"
+        confidence = float(prediction) if is_normal else float(1 - prediction)
+
         return {
-            "label": "Not an ECG",
-            "confidence": 0,
-            "raw_score": 0,
-            "recommendation": "This does not appear to be an ECG signal. Please upload a valid ECG image."
+            "label": label,
+            "confidence": round(confidence * 100, 2),
+            "raw_score": float(prediction),
+            "recommendation": "Please consult a doctor for confirmation" if label == "Abnormal" else "Result appears normal, but please consult a doctor for a professional medical evaluation"
         }
 
-    image_resized = image.resize((IMG_SIZE, IMG_SIZE))
-    img_array = np.array(image_resized) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
-
-    prediction = model.predict(img_array)[0][0]
-
-    is_normal = prediction > THRESHOLD
-    label = "Normal" if is_normal else "Abnormal"
-    confidence = float(prediction) if is_normal else float(1 - prediction)
-
-    return {
-        "label": label,
-        "confidence": round(confidence * 100, 2),
-        "raw_score": float(prediction),
-        "recommendation": "Please consult a doctor for confirmation" if label == "Abnormal" else "Result appears normal, but please consult a doctor for a professional medical evaluation"
-    }
-
+    except Exception as e:
+        return {"error": f"An unexpected error occurred: {str(e)}"}
 
 if __name__ == "__main__":
     import uvicorn
