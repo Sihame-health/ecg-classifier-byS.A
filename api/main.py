@@ -6,6 +6,12 @@ from PIL import Image
 import io
 import os
 
+original_dense_init = tf.keras.layers.Dense.__init__
+def patched_dense_init(self, *args, **kwargs):
+    kwargs.pop('quantization_config', None)
+    original_dense_init(self, *args, **kwargs)
+tf.keras.layers.Dense.__init__ = patched_dense_init
+
 app = FastAPI(title="ECG Classifier API")
 
 app.add_middleware(
