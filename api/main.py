@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io
+import os
 
 app = FastAPI(title="ECG Classifier API")
 
@@ -14,7 +15,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "MobileNetV2_best.h5"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "MobileNetV2_best.h5")
+
 model = tf.keras.models.load_model(MODEL_PATH)
 IMG_SIZE = 224
 THRESHOLD = 0.9
