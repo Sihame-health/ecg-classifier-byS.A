@@ -1,12 +1,20 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY . .
-RUN dotnet restore
-RUN dotnet publish -c Release -o /app
+FROM python:3.9-slim
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app .
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
-ENTRYPOINT ["dotnet", "EcgClassifierWeb.dll"]
+
+# Installer les dépendances système si nécessaire (ex: compilation)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier le dossier api qui contient le code et le modèle
+COPY api/ /app/api/
+
+# Installer les dépendances Python listées dans requirements.txt
+RUN pip install --no-cache-dir -r api/requirements.txt
+
+# Exposer le port par défaut qu'utilise Render
+EXPOSE 5000
+
+# Lancer l'application main.py
+CMD ["python", "api/main.py"]
