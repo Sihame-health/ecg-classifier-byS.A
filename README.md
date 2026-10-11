@@ -31,7 +31,7 @@ This project was built as a personal deep dive into applying machine learning to
 - HTML / CSS / JavaScript
 
 **Deployment**
-- Railway (both API and web app)
+- Render (both API and web app)
 - GitHub for version control
 
 ## Architecture
