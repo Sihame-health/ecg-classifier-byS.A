@@ -2,7 +2,7 @@
 
 A full-stack machine learning project that classifies ECG (electrocardiogram) images as **Normal** or **Abnormal** using a CNN model, served through a Python API and an ASP.NET Core web application.
 
-🔗 **Live demo:** https://ecg-classifierabnormal-normal-bysa.up.railway.app
+🔗 **Live demo:** [https://ecg-classifier-bys-a-yloo.onrender.com/]
 ![ECG Classifier Demo](Demo-ECG-CLASSIFIER.gif)
 
 ---
@@ -31,7 +31,7 @@ This project was built as a personal deep dive into applying machine learning to
 - HTML / CSS / JavaScript
 
 **Deployment**
-- Railway (both API and web app)
+- Render (both API and web app)
 - GitHub for version control
 
 ## Architecture
