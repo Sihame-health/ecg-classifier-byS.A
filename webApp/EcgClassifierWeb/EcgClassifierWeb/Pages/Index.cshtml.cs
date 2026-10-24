@@ -37,22 +37,43 @@ namespace EcgClassifierWeb.Pages
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                using var content = new MultipartFormDataContent();
-
-                using var memoryStream = new MemoryStream();
-                await UploadedFile.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
-
-                var streamContent = new ByteArrayContent(memoryStream.ToArray());
-                streamContent.Headers.ContentType =
-                    new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedFile.ContentType);
-
-                content.Add(streamContent, "file", UploadedFile.FileName);
+                client.Timeout = TimeSpan.FromMinutes(4);
 
                 var apiUrl = _configuration["ApiSettings:PredictUrl"];
-                var response = await client.PostAsync(apiUrl, content);
 
-                if (response.IsSuccessStatusCode)
+                // On lit le fichier une seule fois en mémoire pour pouvoir le renvoyer à chaque essai
+                using var memoryStream = new MemoryStream();
+                await UploadedFile.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
+
+                HttpResponseMessage? response = null;
+                const int maxAttempts = 5;
+
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                {
+                    // Le contenu ne peut être envoyé qu'une fois : on le recrée à chaque essai
+                    using var content = new MultipartFormDataContent();
+                    var fileContent = new ByteArrayContent(fileBytes);
+                    fileContent.Headers.ContentType =
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(UploadedFile.ContentType);
+                    content.Add(fileContent, "file", UploadedFile.FileName);
+
+                    response = await client.PostAsync(apiUrl, content);
+
+                    if (response.IsSuccessStatusCode)
+                        break;
+
+                    // 502/503/504 = l'API est en train de se réveiller : on attend puis on réessaie
+                    var code = (int)response.StatusCode;
+                    bool apiWakingUp = code == 502 || code == 503 || code == 504;
+
+                    if (apiWakingUp && attempt < maxAttempts)
+                        await Task.Delay(TimeSpan.FromSeconds(20));
+                    else
+                        break;
+                }
+
+                if (response != null && response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var result = System.Text.Json.JsonSerializer.Deserialize<PredictionResult>(
@@ -73,7 +94,9 @@ namespace EcgClassifierWeb.Pages
                 }
                 else
                 {
-                    ErrorMessage = "Erreur lors de l'appel à l'API de prédiction.";
+                    var body = response != null ? await response.Content.ReadAsStringAsync() : "";
+                    if (body.Length > 200) body = body.Substring(0, 200);
+                    ErrorMessage = $"Erreur API : {(int?)response?.StatusCode} {response?.ReasonPhrase} - {body}";
                 }
             }
             catch (Exception ex)
