@@ -53,7 +53,7 @@ def is_likely_ecg(image: Image.Image) -> bool:
     return is_low_saturation and has_dominant_white_bg and has_contrast
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"message": "ECG Classifier API is running"}
 
