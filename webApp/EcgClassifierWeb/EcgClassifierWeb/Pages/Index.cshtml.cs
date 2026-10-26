@@ -1,267 +1,205 @@
-```csharp
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Net;
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "ECG Normal/Abnormal Classifier S.A";
+}
 
-namespace EcgClassifierWeb.Pages
-{
-    public class IndexModel : PageModel
-    {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
+<div class="hero">
+    <div class="hero-content">
+        <div class="badge">
+            <i class="bi bi-heart-pulse"></i> Digital Health Project by S.A
+        </div>
+        <h1>ECG Classifier</h1>
+        <p class="subtitle">Smart cardiac anomaly detection powered by Deep Learning</p>
+        <p class="usage-note">
+            You can use your own ECG photos — just make sure to upload a single-lead signal at a time, not a full multi-lead recording.
+        </p>
+    </div>
+</div>
 
-        public IndexModel(
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+<div class="container-main">
+    <div class="upload-card">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" class="file-input" id="UploadedFile" name="UploadedFile" accept="image/*" required />
+                <div class="upload-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                </div>
+                <p class="upload-text">Drag your ECG image here</p>
+                <p class="upload-subtext">or click to browse your files</p>
+                <p class="file-name" id="fileName"></p>
+            </div>
+            <button type="submit" class="btn-analyze">
+                 Run ECG analysis
+            </button>
+        </form>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
         {
-            _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
+            <div class="result-box error">
+                <p>@Model.ErrorMessage</p>
+            </div>
         }
 
-        [BindProperty]
-        public IFormFile? UploadedFile { get; set; }
-
-        public string? PredictionLabel { get; set; }
-        public double? Confidence { get; set; }
-        public string? Recommendation { get; set; }
-        public string? ErrorMessage { get; set; }
-
-        public void OnGet()
+        @if (!string.IsNullOrEmpty(Model.PredictionLabel))
         {
+            bool isNormal = Model.PredictionLabel == "Normal";
+            bool isNotEcg = Model.PredictionLabel == "Not an ECG";
+            string resultClass = isNotEcg ? "error" : (isNormal ? "success" : "warning");
+
+            <div class="result-box @resultClass">
+                <div class="result-header">
+                    <div>
+                        <h3>@Model.PredictionLabel</h3>
+                        <p class="confidence">Confidence : @Model.Confidence%</p>
+                    </div>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill @resultClass" style="width: @(Model.Confidence)%"></div>
+                </div>
+                <p class="recommendation">@Model.Recommendation</p>
+            </div>
         }
+    </div>
 
-        public async Task OnPostAsync()
-        {
-            if (UploadedFile == null || UploadedFile.Length == 0)
-            {
-                ErrorMessage = "Veuillez sélectionner une image.";
+    <div class="info-cards">
+        <div class="info-card">
+            <div class="info-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path>
+                </svg>
+            </div>
+            <h4>MobileNetV2</h4>
+            <p>CNN model trained via transfer learning</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+            </div>
+            <h4>96.9% AUC</h4>
+            <p>Validated on 16,600+ test images</p>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#764ba2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+            <h4>110K+ images</h4>
+            <p>MIT-BIH dataset + real-world ECG images</p>
+        </div>
+    </div>
+</div>
+
+<footer class="author-footer">
+    <div class="author-card">
+        <div class="author-avatar">SA</div>
+        <div class="author-text">
+            <h4>A note from the Author</h4>
+            <p>
+                Hi there! I'm Siham Ait Taleb, a Master's student in Digital
+                Engineering for Healthcare Professions, based in Morocco, with
+                a background in electrical engineering. This project is my
+                personal deep dive into machine learning for healthcare — I
+                wanted to bridge my two passions by building this ECG
+                classifier from scratch, handling everything from the initial
+                dataset to final deployment.
+            </p>
+            <p>
+                Truth be told, hardware and electronics are where my heart
+                really is — but I wanted to challenge myself and step into
+                the ML/software side too, and I truly enjoyed the journey.
+                I'd love to keep exploring projects like this in the future,
+                at the intersection of engineering and healthcare.
+                Feel free to reach out — I'd love to connect and discuss!
+            </p>
+            <div class="author-links">
+                <a href="https://github.com/Sihame-health" target="_blank">GitHub</a>
+                <a href="https://linkedin.com/in/siham-ait-taleb" target="_blank">LinkedIn</a>
+            </div>
+        </div>
+    </div>
+    <p class="disclaimer">
+        This project is for educational purposes only and is not intended to replace professional medical advice.
+    </p>
+</footer>
+<script>
+    // Réveille l'API en arrière-plan dès l'ouverture de la page (cold start Render)
+    fetch('?handler=Warmup').catch(() => {});
+
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('UploadedFile');
+    const fileName = document.getElementById('fileName');
+    const uploadForm = document.getElementById('uploadForm');
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+            uploadZone.classList.add('has-file');
+        }
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            fileName.textContent = e.dataTransfer.files[0].name;
+            uploadZone.classList.add('has-file');
+        }
+    });
+
+    const loadingMessages = [
+        "Analyzing ECG signal...",
+        "Running the model...",
+        "Extracting patterns...",
+        "Almost there..."
+    ];
+
+    // Affiché si l'analyse dure longtemps (serveur gratuit qui se réveille)
+    const wakingMessage = "The free demo server is waking up — this can take up to a minute...";
+
+    uploadForm.addEventListener('submit', function () {
+        const overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-box">
+                <div class="spinner"></div>
+                <p class="loading-text" id="loadingText">${loadingMessages[0]}</p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        let i = 0;
+        let ticks = 0;
+        setInterval(() => {
+            ticks++;
+            const textEl = document.getElementById('loadingText');
+
+            // Après ~9 secondes, on explique pourquoi c'est long
+            if (ticks >= 6) {
+                textEl.textContent = wakingMessage;
                 return;
             }
 
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-
-                // Timeout suffisamment long pour supporter le cold start Render
-                client.Timeout = TimeSpan.FromMinutes(4);
-
-                var apiUrl = _configuration["ApiSettings:PredictUrl"];
-
-                if (string.IsNullOrWhiteSpace(apiUrl))
-                {
-                    ErrorMessage = "URL de l'API non configurée.";
-                    return;
-                }
-
-                // ============================================================
-                // 1. RÉVEIL DE L'API RENDER
-                // ============================================================
-
-                // On récupère l'URL de base à partir de l'URL /predict.
-                // Exemple :
-                // https://ecg-classifier-bys-a.onrender.com/predict
-                // devient :
-                // https://ecg-classifier-bys-a.onrender.com/
-                var baseUrl = apiUrl.TrimEnd('/');
-
-                if (baseUrl.EndsWith("/predict", StringComparison.OrdinalIgnoreCase))
-                {
-                    baseUrl = baseUrl[..^"/predict".Length];
-                }
-
-                baseUrl += "/";
-
-                bool apiReady = false;
-
-                const int wakeAttempts = 6;
-
-                for (int attempt = 1; attempt <= wakeAttempts; attempt++)
-                {
-                    try
-                    {
-                        var wakeResponse = await client.GetAsync(baseUrl);
-
-                        if (wakeResponse.IsSuccessStatusCode)
-                        {
-                            apiReady = true;
-                            break;
-                        }
-
-                        // 405 est acceptable si l'API répond mais que
-                        // la route / n'accepte pas la méthode utilisée.
-                        // Dans ton cas tes logs montrent que GET / fonctionne.
-                        if (wakeResponse.StatusCode == HttpStatusCode.MethodNotAllowed)
-                        {
-                            apiReady = true;
-                            break;
-                        }
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Timeout pendant le réveil : on réessaie.
-                    }
-                    catch (HttpRequestException)
-                    {
-                        // API momentanément indisponible : on réessaie.
-                    }
-
-                    if (attempt < wakeAttempts)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(10));
-                    }
-                }
-
-                if (!apiReady)
-                {
-                    ErrorMessage =
-                        "L'API de prédiction met trop de temps à démarrer. " +
-                        "Veuillez patienter quelques secondes puis réessayer.";
-
-                    return;
-                }
-
-                // ============================================================
-                // 2. LECTURE DU FICHIER
-                // ============================================================
-
-                // On lit le fichier une seule fois en mémoire afin de pouvoir
-                // recréer le MultipartFormDataContent à chaque tentative.
-                using var memoryStream = new MemoryStream();
-
-                await UploadedFile.CopyToAsync(memoryStream);
-
-                var fileBytes = memoryStream.ToArray();
-
-                // ============================================================
-                // 3. ENVOI DE LA PRÉDICTION
-                // ============================================================
-
-                HttpResponseMessage? response = null;
-
-                const int maxAttempts = 4;
-
-                for (int attempt = 1; attempt <= maxAttempts; attempt++)
-                {
-                    using var content = new MultipartFormDataContent();
-
-                    var fileContent = new ByteArrayContent(fileBytes);
-
-                    fileContent.Headers.ContentType =
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(
-                            string.IsNullOrWhiteSpace(UploadedFile.ContentType)
-                                ? "image/jpeg"
-                                : UploadedFile.ContentType
-                        );
-
-                    content.Add(
-                        fileContent,
-                        "file",
-                        UploadedFile.FileName
-                    );
-
-                    try
-                    {
-                        response = await client.PostAsync(apiUrl, content);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Timeout : on considère que l'API est peut-être
-                        // encore en train de se réveiller.
-                        if (attempt < maxAttempts)
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(10));
-                            continue;
-                        }
-
-                        break;
-                    }
-                    catch (HttpRequestException)
-                    {
-                        if (attempt < maxAttempts)
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(10));
-                            continue;
-                        }
-
-                        break;
-                    }
-
-                    // Succès
-                    if (response.IsSuccessStatusCode)
-                        break;
-
-                    // Render peut renvoyer ces codes pendant le réveil.
-                    bool apiWakingUp =
-                        response.StatusCode == HttpStatusCode.BadGateway ||      // 502
-                        response.StatusCode == HttpStatusCode.ServiceUnavailable || // 503
-                        response.StatusCode == HttpStatusCode.GatewayTimeout;    // 504
-
-                    if (apiWakingUp && attempt < maxAttempts)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(10));
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                // ============================================================
-                // 4. TRAITEMENT DE LA RÉPONSE
-                // ============================================================
-
-                if (response != null && response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-
-                    var result =
-                        System.Text.Json.JsonSerializer.Deserialize<PredictionResult>(
-                            json,
-                            new System.Text.Json.JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true
-                            }
-                        );
-
-                    if (!string.IsNullOrEmpty(result?.Error))
-                    {
-                        ErrorMessage = result.Error;
-                    }
-                    else
-                    {
-                        PredictionLabel = result?.Label;
-                        Confidence = result?.Confidence;
-                        Recommendation = result?.Recommendation;
-                    }
-                }
-                else
-                {
-                    var body = response != null
-                        ? await response.Content.ReadAsStringAsync()
-                        : "";
-
-                    if (body.Length > 300)
-                        body = body.Substring(0, 300);
-
-                    ErrorMessage =
-                        $"L'API de prédiction est momentanément indisponible " +
-                        $"({(int?)response?.StatusCode} {response?.ReasonPhrase}). " +
-                        $"Veuillez patienter quelques secondes puis réessayer.";
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Erreur : {ex.Message}";
-            }
-        }
-
-        public class PredictionResult
-        {
-            public string? Label { get; set; }
-            public double? Confidence { get; set; }
-            public double? RawScore { get; set; }
-            public string? Recommendation { get; set; }
-            public string? Error { get; set; }
-        }
-    }
-}
+            i = (i + 1) % loadingMessages.length;
+            textEl.textContent = loadingMessages[i];
+        }, 1500);
+    });
+</script>
